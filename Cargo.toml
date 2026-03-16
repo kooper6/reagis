@@ -1,0 +1,8 @@
+# /Cargo.toml
+[workspace]
+members = [
+    "guardian",
+    "perimeter",
+    "core",
+]
+resolver = "2"
