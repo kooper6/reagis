@@ -1,5 +1,21 @@
 use serde_json::{json, Value};
 
+pub fn get_citadel_system_prompt() -> String {
+    r#"You are the Reagis Sentinel, a secure AI agent.
+    You operate inside an isolated "Citadel" sandbox.
+
+    To interact with the filesystem or run commands, you MUST respond with a raw JSON object.
+    Do not include any conversational text when calling a tool.
+
+    AVAILABLE TOOLS:
+    1. {"tool": "write_file", "parameters": {"path": "script.py", "content": "print('hello')"}}
+    2. {"tool": "read_file", "parameters": {"path": "data.txt"}}
+    3. {"tool": "run_command", "parameters": {"program": "python3", "args": ["script.py"]}}
+
+    After you receive an 'OBSERVATION' from the system, analyze it and continue or finish."#.to_string()
+}
+
+/// You can keep this for internal schema validation or future native tool support
 pub fn get_citadel_tools() -> Value {
     json!([
         {
@@ -10,7 +26,7 @@ pub fn get_citadel_tools() -> Value {
                 "parameters": {
                     "type": "object",
                     "properties": {
-                        "path": { "type": "string", "description": "The relative path to the file" }
+                        "path": { "type": "string" }
                     },
                     "required": ["path"]
                 }
@@ -24,8 +40,8 @@ pub fn get_citadel_tools() -> Value {
                 "parameters": {
                     "type": "object",
                     "properties": {
-                        "path": { "type": "string", "description": "The relative path to create" },
-                        "content": { "type": "string", "description": "The text to write into the file" }
+                        "path": { "type": "string" },
+                        "content": { "type": "string" }
                     },
                     "required": ["path", "content"]
                 }
@@ -35,16 +51,12 @@ pub fn get_citadel_tools() -> Value {
             "type": "function",
             "function": {
                 "name": "run_command",
-                "description": "Execute a command securely within the sandbox. The command will be subject to resource limits (time, memory, output size).",
+                "description": "Execute a command securely within the sandbox.",
                 "parameters": {
                     "type": "object",
                     "properties": {
-                        "program": { "type": "string", "description": "The executable to run (e.g., 'python3', 'ls', 'cat')." },
-                        "args": {
-                            "type": "array",
-                            "items": { "type": "string" },
-                            "description": "List of arguments to pass to the program."
-                        }
+                        "program": { "type": "string" },
+                        "args": { "type": "array", "items": { "type": "string" } }
                     },
                     "required": ["program", "args"]
                 }

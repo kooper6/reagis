@@ -6,7 +6,7 @@ edition = "2021"
 [dependencies]
 guardian = { path = "../guardian" }
 reagis_core = { path = "../core" }
-ollama-rs = "0.2.1"
+ollama-rs = { version = "0.2.6", features = ["stream", "tool-implementations"] } # Fixed feature name
 tokio = { version = "1", features = ["full"] }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
