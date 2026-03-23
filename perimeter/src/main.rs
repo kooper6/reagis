@@ -1,56 +1,33 @@
-mod tools;
+use clap::Parser;
+use perimeter::cli::{Cli, Commands};
+use perimeter::session;
+use colored::*;
 
-use guardian::ReagisGuard;
-use std::path::Path;
-use ollama_rs::generation::chat::{ChatMessage, MessageRole};
-use serde_json::Value;
 #[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>>{
-    let sandbox_path = "./citadel_workspace";
-    let guard = ReagisGuard::new(sandbox_path)?;
-    let ollama = Ollama::default();
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let cli = Cli::parse();
 
-    let user_input = "Create a file named mission.txt with 'Secure the Citadel' as content.";
-    let mut message = vec![
-        ChatMessage::user(user_input.to_string()),
-    ];
-
-    loop {
-        let res = ollama
-            .chat_with_tools("llama3", message.clone(), Some(tools::get_fs_tools))
-            .await()?;
-
-        let response_message = res.message;
-
-        if let Some(tool_calls) = &response_message.tools_calls {
-            for call in tool_calls {
-                let func_name = &call.function.name;
-                let args = &call.function.arguments;
-
-                println!("Guardian Intercept: Agent wants to call {}", func_name);
-
-                let result = match func_name.as_str() {
-                    "write_file" => {
-                        let path = args["path"].as_str().unwrap_or_default();
-                        let content = args["content"].as_str().unwrap_or_default();
-                        guard.write_file(path, content)
-                    },
-                    "read_file" => {
-                        let path = args["path"].as_str().unwrap_or_default();
-                        guard.read_file(path)
-                    }
-                    _ => Err("Unknown tool".to_string())
-                };
-
-                let status = result.unwrap_or_else(|e| e);
-                message.push(ChatMessage::tool(status))
-            }
-            continue;
-        } else {
-            println!("Citadel Response: {}", response_message.content);
-            break;
+    match cli.command {
+        Some(Commands::Run { session }) => {
+            println!("{} {}", "Starting Citadel session:".green().bold(), session.cyan());
+            perimeter::run_agent(&session).await?;
         }
-
+        Some(Commands::List) => {
+            let sessions = session::list_sessions()?;
+            if sessions.is_empty() {
+                println!("No saved sessions found.");
+            } else {
+                println!("{}", "Saved Sessions:".yellow().bold());
+                for s in sessions {
+                    println!("  - {}", s);
+                }
+            }
+        }
+        None => {
+            // Default behavior if no command provided? Maybe show help.
+            // Clap usually handles this if command is required, but here it's Option.
+            println!("Use --help for usage instructions.");
+        }
     }
 
     Ok(())

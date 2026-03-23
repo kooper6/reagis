@@ -1,6 +1,15 @@
+[package]
+name = "perimeter"
+version = "0.1.0"
+edition = "2021"
+
 [dependencies]
 guardian = { path = "../guardian" }
+reagis_core = { path = "../core" }
 ollama-rs = "0.2.1"
 tokio = { version = "1", features = ["full"] }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
+clap = { version = "4.5", features = ["derive"] }
+colored = "2.1"
+indicatif = "0.17"
