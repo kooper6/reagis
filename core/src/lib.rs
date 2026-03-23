@@ -43,7 +43,7 @@ impl CommandRunner {
                     };
 
                     if libc::setrlimit(libc::RLIMIT_AS, &rlim) != 0 {
-                        //TODO fix error handling
+                        return Err(std::io::Error::last_os_error());
                     }
                 }
                 Ok(())
